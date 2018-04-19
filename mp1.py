@@ -174,7 +174,7 @@ def test_model(model,nb_test=100):
     print("triangle : ratio " + str(float(good_prediction)/nb_test))
 
 
-model = generate_linear_classifier(2000)
+model = generate_linear_classifier(300)
 test_model(model,10)
 
 
