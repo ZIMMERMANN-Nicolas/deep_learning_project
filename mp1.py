@@ -111,7 +111,7 @@ def generate_test_set_classification():
     Y_test = np_utils.to_categorical(Y_test, 3)
     return [X_test, Y_test]
 
-def generate_linear_classifier(nb_samples):
+def generate_linear_classifier(nb_samples,free_location=False):
     #create model
     model = Sequential()
     nb_neurons = 20
@@ -124,7 +124,7 @@ def generate_linear_classifier(nb_samples):
     model.compile(loss='mean_squared_error', optimizer=sgd)
 
     #create training data
-    [X_train, Y_train] = generate_dataset_classification(nb_samples, 20)
+    [X_train, Y_train] = generate_dataset_classification(nb_samples, 20,free_location)
     Y_train =keras.utils.to_categorical(Y_train,num_classes=3)
 
     #training
@@ -153,30 +153,33 @@ def prediction(X_test,model,verbose=False):
             print("Triangle : prob " + str(max_prov))
     return ind_prov
 
-def test_model(model,nb_test=100):
-    X_test = [generate_a_rectangle() for k in range(nb_test)]
+def test_model(model,nb_test=100,free_location=False):
+    X_test = [generate_a_rectangle(free_location=free_location) for k in range(nb_test)]
     good_prediction = 0
     for x in X_test:
         if prediction(x,model) == 0:
             good_prediction += 1
     print("rectangle : ratio " + str(float(good_prediction)/nb_test))
     good_prediction = 0
-    X_test = [generate_a_disk() for k in range(nb_test)]
+    X_test = [generate_a_disk(free_location=free_location) for k in range(nb_test)]
     for x in X_test:
         if prediction(x,model) == 1:
             good_prediction += 1
     print("disk : ratio " + str(float(good_prediction)/nb_test))
     good_prediction = 0
-    X_test = [generate_a_triangle()[:-1] for k in range(nb_test)]
+    X_test = [generate_a_triangle(free_location=free_location)[:-1] for k in range(nb_test)]
     for x in X_test:
         if prediction(x[0],model) == 2:
             good_prediction += 1
     print("triangle : ratio " + str(float(good_prediction)/nb_test))
 
-
-model = generate_linear_classifier(300)
-test_model(model,10)
-
+# generate a linear classifier with a training set size 1000 and figures centered -> work
+# model = generate_linear_classifier(1000)
+# test_model(model,100)
+#
+# # generate a linear classifier with a training set size 1000 and figures not centered -> don't work well
+# model = generate_linear_classifier(1000,True)
+# test_model(model,100,True)
 
 def generate_dataset_regression(nb_samples, noise=0.0):
     # Getting im_size:
