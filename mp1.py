@@ -148,9 +148,9 @@ def generate_convolutional_network(nb_samples):
     kernel_size = 5
     pool_size = 4
     hidden_size = 512
-    drop_prob_1 = 0.2
+    drop_prob_1 = 0.4
     drop_prob_2 = 0.5
-    nb_epochs = 20
+    nb_epochs = 25
     batch_size = 32
     inp = Input(shape=(height, width, depth))
 
@@ -168,6 +168,43 @@ def generate_convolutional_network(nb_samples):
     X_train = np.reshape(X_train, (nb_samples,height,width,depth))
     sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
     model.compile(loss='categorical_crossentropy', # using the cross-entropy loss function
+              optimizer=sgd, # using the sgd optimizer
+              metrics=['accuracy']) # reporting the accuracy
+
+    #training
+    model.fit(X_train, Y_train, epochs=nb_epochs, batch_size=batch_size)
+
+    return model
+
+def generate_convolutional_network_bb(nb_samples):
+    vector_size = 6
+    height =100
+    width = 100
+    depth = 1
+    conv_depth_1 = 15
+    kernel_size = 5
+    pool_size = 4
+    hidden_size = 512
+    drop_prob_1 = 0.4
+    drop_prob_2 = 0.5
+    nb_epochs = 25
+    batch_size = 32
+    inp = Input(shape=(height, width, depth))
+
+    conv_1 = Convolution2D(conv_depth_1, (kernel_size, kernel_size), padding='same', activation='relu')(inp)
+    pool_1 = MaxPooling2D(pool_size=(pool_size, pool_size))(conv_1)
+    drop_1 = Dropout(drop_prob_1)(pool_1)
+    flat = Flatten()(drop_1)
+    hidden = Dense(hidden_size, activation='relu')(flat)
+    drop_2 = Dropout(drop_prob_2)(hidden)
+    out = Dense(vector_size)(drop_2)
+    model = Model(inputs=inp, outputs=out)
+    #create training data
+    [X_train, Y_train] = generate_dataset_regression(nb_samples)
+
+    X_train = np.reshape(X_train, (nb_samples,height,width,depth))
+    sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
+    model.compile(loss='mean_squared_error', # using the cross-entropy loss function
               optimizer=sgd, # using the sgd optimizer
               metrics=['accuracy']) # reporting the accuracy
 
@@ -274,7 +311,7 @@ import matplotlib.patches as patches
 
 def visualize_prediction(x, y):
     fig, ax = plt.subplots(figsize=(5, 5))
-    I = x.reshape((72,72))
+    I = x.reshape((100,100))
     ax.imshow(I, extent=[-0.15,1.15,-0.15,1.15],cmap='gray')
     ax.set_xlim([0,1])
     ax.set_ylim([0,1])
@@ -306,9 +343,19 @@ def main():
     # model = generate_linear_classifier(1000,True)
     # test_model(model,100,True)
 
-    model = generate_convolutional_network(1000)
-    test_model2(model,100,True)
+    # model = generate_convolutional_network(1000)
+    # test_model2(model,100,True)
 
+    model = generate_convolutional_network_bb(1000)
+
+
+    [X_train, Y_train] = generate_dataset_regression(3, 20)
+    X_pred = np.reshape(X_train[0], (1,100,100,1))
+    Y_pred = model.predict(X_pred)
+    visualize_prediction(X_train[0], Y_pred)
+
+
+    #[X_test, Y_test] = generate_test_set_regression()
 
 
 main()
